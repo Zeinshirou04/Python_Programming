@@ -20,37 +20,39 @@ class Chat:
 
     def __init__(self):
 
-        load_dotenv()
-        self.API_KEY = os.getenv('API_KEY')
-        # print(self.API_KEY) 
+        try:
+            load_dotenv()
+            self.API_KEY = os.getenv('API_KEY')
+            # print(self.API_KEY) 
 
-        os.environ['API_KEY'] = self.API_KEY
-        genai.configure(api_key=os.environ['API_KEY'])
-        model = genai.GenerativeModel('gemini-1.5-flash')
+            HarmCategory = genai.types.HarmCategory
+            HarmBlockTreshold = genai.types.HarmBlockThreshold
+            
+            safety_settings = {
+                HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockTreshold.BLOCK_NONE,
+                HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockTreshold.BLOCK_NONE,
+                HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockTreshold.BLOCK_NONE,
+                HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockTreshold.BLOCK_NONE
+            }
 
-        HarmCategory = genai.types.HarmCategory
-        HarmBlockTreshold = genai.types.HarmBlockThreshold
-        
-        safety_settings = {
-            HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockTreshold.BLOCK_NONE,
-            HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockTreshold.BLOCK_NONE,
-            HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockTreshold.BLOCK_NONE,
-            HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockTreshold.BLOCK_NONE
-        }
+            os.environ['API_KEY'] = self.API_KEY
+            genai.configure(api_key=os.environ['API_KEY'])
+            model = genai.GenerativeModel('gemini-1.5-flash', safety_settings=safety_settings)
 
-        self.loadChat(None)
-        self.chat = model.start_chat(history=self.history, safety_settings=safety_settings)
-        self.run()
-        # try:
-        # except Exception as er:
-        #     print(f'Error Found: {er}')
+
+            self.loadChat(None)
+            self.chat = model.start_chat(history=self.history)
+            self.run()
+            
+        except Exception as er:
+            print(f'Error Found: {er}')
         
     
-    def speak(msg):
+    def speak(self, msg):
         tts = gTTS(msg, lang='id')
         tts.save('Ini.mp3')
-        playsound('Ini.mp3')
-        return 1
+        if playsound('Ini.mp3'): return 1
+        else: return 0
     
     def saveChat(self, role, text, model):
         
@@ -114,6 +116,7 @@ class Chat:
             text = input('You: ')
             self.status = False
             response, self.status = self.message(text, model)
+            self.speak(response.text)
             print(f'Lintang: {response.text}')
         
 Chat()
