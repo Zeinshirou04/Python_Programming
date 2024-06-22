@@ -26,7 +26,7 @@ class Chat:
             self.chat = model.start_chat(history=self.history)
             self.run(self.history)
         except:
-            os.environ['API_KEY'] = 'AIzaSyCCEMKGpu_fwmL1GwgAsYbknD9jzG2_chM'
+            os.environ['API_KEY'] = 'YOUR_API_KEY'
             genai.configure(api_key=os.environ['API_KEY'])
             model = genai.GenerativeModel('gemini-1.5-flash')
             self.loadChat()
