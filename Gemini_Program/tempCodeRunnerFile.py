@@ -1,0 +1,1 @@
+model == ('lintang' or 'Lintang' or 2)

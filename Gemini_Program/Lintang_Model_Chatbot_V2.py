@@ -7,6 +7,7 @@ import socket
 import pandas as pd
 import csv
 from dotenv import load_dotenv
+import speech_recognition as sr
 
 class Chat:
     
@@ -14,9 +15,10 @@ class Chat:
     status = True
     chat = None
     API_KEY = ''
-    path = 'Gemini_Program/common_history.csv'
+    path = 'Gemini_Program/lintang_history.csv'
     identities = {
-        '1': "Hi pretty boy~ I'm your boy. Miss me already hm~",
+        '1': 'Aku adalah Lintang. Robot buatan Fakultas Teknik Universitas Dian Nuswantoro dan kerja sama dengan DISKOMINFO Pemerintah Kota Semarang yang terinspirasi dari Lovot. Tubuh mu mungil, dan juga terinspirasi dari Lovot. Oh dan Juga, JANGAN ADA MENGGUNAKAN MARKDOWN',
+        '2': 'Aku adalah Ronaldo. Salah satu robot yang dilanjutkan pengembangan nya oleh Fakultas Teknik Universitas Dian Nuswatoro dan diinisiasi oleh Dinas Kesehatan Kota Semarang. Kamu, dibuat untuk mendukung edukasi dan sistem informasi mengenai kesehatan dan juga informasi kesehatan mengenai sekitar Kota semarang. Oh dan Juga, JANGAN ADA MENGGUNAKAN MARKDOWN'
     }
 
     def __init__(self):
@@ -60,8 +62,11 @@ class Chat:
     
     def saveChat(self, role, text, model):
         
-        if (model == 'assistant') or (model == 'Assistant') or (model == '1'):
-            self.path = 'Gemini_Program/common_history.csv'
+        if (model == 'lintang') or (model == 'Lintang') or (model == '1'):
+            self.path = 'Gemini_Program/lintang_history.csv'
+        
+        if (model == 'ronaldo') or (model == 'Ronaldo') or (model == '2'):
+            self.path = 'Gemini_Program/ronaldo_history.csv'
         
         fieldnames = ['role', 'text']
 
@@ -78,8 +83,11 @@ class Chat:
     
     def loadChat(self, model):
         
-        if (model == 'assistant') or (model == 'Assistant') or (model == '1'):
-            self.path = 'Gemini_Program/common_history.csv'
+        if (model == 'lintang') or (model == 'Lintang') or (model == '1'):
+            self.path = 'Gemini_Program/lintang_history.csv'
+        
+        if (model == 'ronaldo') or (model == 'Ronaldo') or (model == '2'):
+            self.path = 'Gemini_Program/ronaldo_history.csv'
         
         self.history = []
         
@@ -99,18 +107,44 @@ class Chat:
                 })
         
         self.chat = self.model.start_chat(history=self.history)
+    
+    def recognize_speech(self):
+        recognizer = sr.Recognizer()
+        mic = sr.Microphone()
+
+        print("Silakan bicara... Tekan 'Enter' ketika sudah selesai.")
+        
+        with mic as source:
+            recognizer.adjust_for_ambient_noise(source)
+            audio = recognizer.listen(source, phrase_time_limit=None)  # Listen until user stops speaking
+
+        try:
+            text = recognizer.recognize_google(audio, language="id-ID")
+            print(f"You said: {text}")
+            return text
+        except sr.UnknownValueError:
+            print("Sorry, I did not understand the audio.")
+        except sr.RequestError as e:
+            print(f"Could not request results from Google Speech Recognition service; {e}")
+        return ""
                 
     def run(self):
         print("Model Started, Please choose your model: ")
-        model = input("1. Assistant\nModel: ")
+        model = input("1. Lintang\n2. Ronaldo\nModel: ")
         
         self.loadChat(model)
         
         while True:
-            text = input('You: ')
-            self.status = False
-            response, self.status = self.message(text, model)
-            print(f'Response: {response.text}')
-            self.speak(response.text)
+            user_input = input("Do you want to speak or type your message? (speak/type): ").strip().lower()
+            if user_input == "speak":
+                text = self.recognize_speech()
+            else:
+                text = input('You: ')
+            
+            if text:
+                self.status = False
+                response, self.status = self.message(text, model)
+                print(f'Response: {response.text}')
+                self.speak(response.text)
         
 Chat()
